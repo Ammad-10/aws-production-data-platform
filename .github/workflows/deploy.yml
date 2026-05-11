@@ -31,14 +31,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check AWS credentials
+        id: aws-creds
+        env:
+          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          if [ -n "$AWS_ROLE_ARN" ]; then
+            echo "mode=oidc" >> "$GITHUB_OUTPUT"
+          elif [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+            echo "mode=static" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "::error::Configure AWS_ROLE_ARN for OIDC, or AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for static credentials."
+            exit 1
+          else
+            echo "mode=none" >> "$GITHUB_OUTPUT"
+            echo "::notice::AWS credentials are not configured; skipping push deployment."
+          fi
+
       - name: Configure AWS (OIDC)
+        if: steps.aws-creds.outputs.mode == 'oidc'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-        # If not using OIDC, comment above and add:
-        #   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        #   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Configure AWS (static credentials)
+        if: steps.aws-creds.outputs.mode == 'static'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -66,4 +91,5 @@ jobs:
           fi
 
       - name: Deploy
+        if: steps.aws-creds.outputs.mode != 'none'
         run: ./scripts/deploy.sh "${{ steps.env.outputs.environment }}"
