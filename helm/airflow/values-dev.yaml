@@ -1,0 +1,21 @@
+# Phase 3.2: Airflow Helm values for EKS (dev) - us-east-1, <your-ecr-namespace> image
+# Replace AIRFLOW_IRSA_ROLE_ARN with: terraform -C infra/terraform output -raw airflow_irsa_role_arn
+
+executor: "KubernetesExecutor"
+
+defaultAirflowRepository: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/<your-ecr-namespace>/airflow"
+defaultAirflowTag: "latest"
+
+serviceAccount:
+  create: true
+  # annotations set by helm_deploy.sh from terraform output; or set manually:
+  # annotations:
+  #   eks.amazonaws.com/role-arn: "<terraform output -raw airflow_irsa_role_arn>"
+
+env:
+  - name: DATA_LAKE_BUCKET
+    value: "data-platform-datalake-dev"
+  - name: GLUE_DATABASE
+    value: "data_lake_dev"
+
+# Set EMR_VIRTUAL_CLUSTER_ID and EMR_JOB_EXECUTION_ROLE_ARN in Airflow UI Variables (when use_emr_on_eks is true)

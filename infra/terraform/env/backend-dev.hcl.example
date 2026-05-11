@@ -1,0 +1,7 @@
+# Copy this to backend-dev.hcl and fill in your values.
+# Run: terraform init -backend-config=env/backend-dev.hcl
+# NEVER commit backend-dev.hcl — it contains account-specific names.
+
+bucket         = "<your-terraform-state-bucket>"
+region         = "us-east-1"
+dynamodb_table = "<your-state-lock-table>"

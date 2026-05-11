@@ -1,0 +1,65 @@
+# Terraform — NEVER commit these
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+tfplan
+*.tfplan
+.terraform.lock.hcl
+
+# Backend config with real bucket names — use .example files instead
+infra/terraform/env/backend-dev.hcl
+infra/terraform/env/backend-prod.hcl
+
+# AWS credentials — NEVER commit
+credentials
+*.pem
+*.key
+cred
+.aws/
+
+# Terraform provider binaries
+*.exe (terraform provider)
+
+# Secrets and environment files
+.env
+*.env
+secrets.yaml
+secrets.yml
+
+# Helm chart lock and cache
+Chart.lock
+charts/
+
+# Kubernetes kubeconfig
+kubeconfig*
+*.kubeconfig
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# Personal files
+*.jpg
+*.jpeg
+*.png
+*.gif
+!docs/screenshots/*.png
+!docs/diagrams/*.png
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
